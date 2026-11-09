@@ -107,6 +107,9 @@ func (e Engine) Render(chrt ci.Charter, values common.Values) (map[string]string
 //
 // TODO Helm v5: Rename this to Render (remove the current deprecated Render method) and 'go:fix inline' RenderWithContext method to call Render.
 func (e Engine) RenderWithContext(ctx context.Context, chrt ci.Charter, values common.Values) (map[string]string, error) {
+	if result, handled, err := renderKustomize(chrt, values); handled || err != nil {
+		return result, err
+	}
 	tmap := allTemplates(chrt, values)
 	return e.render(ctx, tmap)
 }

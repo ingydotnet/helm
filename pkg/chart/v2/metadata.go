@@ -44,8 +44,16 @@ func (m *Maintainer) Validate() error {
 	return nil
 }
 
+// RenderConfig selects the renderer and chart-local entry points.
+type RenderConfig struct {
+	Engine   string            `json:"engine"`
+	Path     string            `json:"path"`
+	Overlays map[string]string `json:"overlays,omitempty"`
+}
+
 // Metadata for a Chart file. This models the structure of a Chart.yaml file.
 type Metadata struct {
+	Render *RenderConfig `json:"render,omitempty"`
 	// The name of the chart. Required.
 	Name string `json:"name,omitempty"`
 	// The URL to a relevant project page, git repo, or contact person

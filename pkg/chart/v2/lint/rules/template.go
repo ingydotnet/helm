@@ -88,18 +88,21 @@ func (t *templateLinter) Lint() {
 	templatesDir := "templates/"
 	templatesPath := filepath.Join(t.linter.ChartDir, templatesDir)
 
-	templatesDirExists := t.linter.RunLinterRule(support.WarningSev, templatesDir, templatesDirExists(templatesPath))
-	if !templatesDirExists {
-		return
-	}
-
-	validTemplatesDir := t.linter.RunLinterRule(support.ErrorSev, templatesDir, validateTemplatesDir(templatesPath))
-	if !validTemplatesDir {
-		return
-	}
-
 	// Load chart and parse templates
 	chart, err := loader.Load(t.linter.ChartDir)
+
+	if err != nil || chart.Metadata.Render == nil {
+		templatesDirExists := t.linter.RunLinterRule(support.WarningSev, templatesDir, templatesDirExists(templatesPath))
+		if !templatesDirExists {
+			return
+		}
+
+		validTemplatesDir := t.linter.RunLinterRule(support.ErrorSev, templatesDir, validateTemplatesDir(templatesPath))
+		if !validTemplatesDir {
+			return
+		}
+
+	}
 
 	chartLoaded := t.linter.RunLinterRule(support.ErrorSev, templatesDir, err)
 
@@ -150,7 +153,11 @@ func (t *templateLinter) Lint() {
 	- Generated content is a valid Yaml file
 	- Metadata.Namespace is not set
 	*/
-	for _, template := range chart.Templates {
+	templates := chart.Templates
+	if chart.Metadata.Render != nil {
+		templates = []*common.File{{Name: "templates/kustomize.yaml"}}
+	}
+	for _, template := range templates {
 		fileName := template.Name
 
 		t.linter.RunLinterRule(support.ErrorSev, fileName, validateAllowedExtension(fileName))
